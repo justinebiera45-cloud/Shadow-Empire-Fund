@@ -475,25 +475,37 @@ const pages = {
     </section>
   `,
 
+
   COMMUNITY: () => `
-    <h1 class="section-title">JOIN THE COMMUNITY</h1>
+    <section class="card">
+      <h1 class="section-title">JOIN OUR COMMUNITY</h1>
 
-    <p class="lead">
-      Follow development and connect with the Shadow Empire
-      community.
-    </p>
+      <p class="lead">
+        Join the Shadow Empire community.
+        Connect with other players, share your ideas,
+        and follow the development of the game.
+      </p>
 
-    <div class="card">
-      <h2>Discord Community</h2>
-      <p>Join the community to receive development updates.</p>
-      <a class="btn primary"
-         href="https://discord.com"
-         target="_blank"
-         rel="noopener">
-        OPEN DISCORD
+      <a
+        href="https://discord.gg/RtYzPutCq"
+        target="_blank"
+        rel="noopener noreferrer"
+        style="
+          display: inline-block;
+          background: #5865F2;
+          color: white;
+          padding: 15px 24px;
+          border-radius: 12px;
+          text-decoration: none;
+          font-weight: bold;
+          margin-top: 20px;
+        "
+      >
+        JOIN DISCORD
       </a>
-    </div>
+    </section>
   `,
+
 
   DASHBOARD: () => `
     <h1 class="section-title">DASHBOARD</h1>
