@@ -1,135 +1,690 @@
-// SHADOW EMPIRE — frontend navigation and page renderer
-// Static frontend preview. Backend required for secure accounts and payments.
+const app = document.getElementById("app");
 
-const app = document.getElementById('app');
-if (!app) throw new Error('Missing <div id="app"></div> in index.html');
-
-const style = document.createElement('style');
-style.textContent = `
-:root{--cyan:#00dfff;--blue:#2678ff;--panel:#0b1423;--line:#1b3550;--text:#eaf2ff;--muted:#aabbd0}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#050713;color:var(--text);font-family:Arial,sans-serif}
-button,input,textarea{font:inherit}button{cursor:pointer}
-.site-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 5%;background:#050912ee;backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-.brand{font-weight:900;letter-spacing:4px;color:var(--cyan);white-space:nowrap}.menu-toggle{display:none;background:#101b2c;color:var(--cyan);border:1px solid var(--line);border-radius:10px;padding:9px 13px;font-size:22px}
-.nav-menu{display:flex;gap:7px;flex-wrap:wrap}.nav-menu button,.btn{border:1px solid var(--line);border-radius:10px;background:#0c1a2b;color:#dceaff;padding:11px 14px;transition:.2s}.nav-menu button:hover,.btn:hover{border-color:var(--cyan);color:var(--cyan);transform:translateY(-1px)}.nav-menu button.active{background:#102d43;border-color:var(--cyan);color:var(--cyan)}
-main{max-width:1150px;margin:auto;padding:32px 5% 60px}.view{animation:fade .22s ease}.hero{min-height:65vh;display:flex;flex-direction:column;justify-content:center;padding:clamp(25px,6vw,70px);border:1px solid #173451;border-radius:24px;background:radial-gradient(ellipse at 80% 20%,#123b61 0%,#091324 45%,#050713 78%);overflow:hidden}.eyebrow{color:var(--cyan);letter-spacing:5px;font-weight:bold}.hero h1{font-size:clamp(38px,8vw,76px);line-height:1.02;margin:20px 0}.hero p,.lead{font-size:clamp(17px,2.5vw,22px);line-height:1.7;color:var(--muted);max-width:720px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}.btn.primary{background:var(--cyan);color:#001018;border-color:var(--cyan);font-weight:bold}.section-title{font-size:clamp(28px,5vw,42px);margin:8px 0 18px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:16px;margin-top:22px}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px}.card h3{margin-top:0}.muted{color:var(--muted);line-height:1.65}.progress{height:12px;background:#142338;border-radius:20px;overflow:hidden;margin:14px 0}.progress span{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));width:0}.form{display:grid;gap:12px;max-width:520px}.form input,.form textarea{width:100%;padding:13px;border-radius:10px;background:#050912;color:var(--text);border:1px solid var(--line)}.notice{padding:14px;border:1px solid #765b26;background:#251d0e;color:#ffe2a3;border-radius:12px;margin:14px 0}.qr{max-width:260px;width:100%;background:white;padding:10px;border-radius:12px}.status{color:var(--cyan)}footer{border-top:1px solid var(--line);padding:24px 5%;text-align:center;color:var(--muted)}
-@keyframes fade{from{opacity:.4;transform:translateY(5px)}to{opacity:1;transform:none}}
-@media(max-width:760px){.site-header{align-items:flex-start;flex-wrap:wrap}.menu-toggle{display:block}.nav-menu{display:none;width:100%;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.nav-menu.open{display:grid}.nav-menu button{width:100%;padding:12px 7px;font-size:13px}.hero{min-height:58vh;padding:28px 22px}.hero h1{font-size:clamp(36px,11vw,58px)}main{padding-top:22px}}
-`;
-document.head.appendChild(style);
-
-const navItems = ['HOME','ABOUT','FEATURES','ROADMAP','FUND','COMMUNITY','DASHBOARD'];
-
-const pages = {
-  HOME: () => `<section class="hero"><p class="eyebrow">SHADOW EMPIRE</p><h1>RISE FROM<br>THE SHADOWS</h1><p>Forge your destiny. Explore a world shaped by power, mystery, and your choices.</p><div class="actions"><button class="btn primary" data-page="FEATURES">EXPLORE THE GAME</button><button class="btn" data-page="FUND">SUPPORT DEVELOPMENT</button></div></section><div class="grid"><article class="card"><h3>⚔ Open-World RPG</h3><p class="muted">Explore a dark fantasy world.</p></article><article class="card"><h3>✦ Epic Dungeons</h3><p class="muted">Face powerful bosses and discover hidden places.</p></article><article class="card"><h3>⬆ Character Growth</h3><p class="muted">Forge your own path through progression.</p></article></div>`,
-
-  ABOUT: () => `<h1 class="section-title">ABOUT SHADOW EMPIRE</h1><p class="lead">A dark fantasy Roblox RPG built around exploration, challenging encounters, and meaningful character progression.</p><div class="grid"><article class="card"><h3>Our Vision</h3><p class="muted">Create an immersive world where players shape their own legend.</p></article><article class="card"><h3>Project Goals</h3><p class="muted">Build memorable quests, balanced combat, and a welcoming community.</p></article><article class="card"><h3>Development Team</h3><p class="muted">An independent project team developing Shadow Empire step by step.</p></article></div>`,
-
-  FEATURES: () => `<h1 class="section-title">GAME FEATURES</h1><p class="lead">Discover what awaits beyond the shadows.</p><div class="grid">${['Open-world RPG','Quests and missions','Dungeons and bosses','Weapons and equipment','Character progression','PvE and PvP','Party system','Multiple worlds'].map(x=>`<article class="card"><h3>✦ ${x}</h3><p class="muted">Planned gameplay feature for the Shadow Empire experience.</p></article>`).join('')}</div>`,
-
-  ROADMAP: () => `<h1 class="section-title">DEVELOPMENT ROADMAP</h1><p class="lead">Follow the journey from concept to playable world.</p><div class="grid"><article class="card"><p class="status">● FOUNDATION</p><h3>Project setup</h3><p class="muted">Planning, core concept, and initial systems.</p></article><article class="card"><p class="status">● IN DEVELOPMENT</p><h3>Core gameplay</h3><p class="muted">Combat, player progression, and world prototyping.</p></article><article class="card"><p class="status">● UPCOMING</p><h3>World expansion</h3><p class="muted">Quests, dungeons, testing, and community feedback.</p></article></div>`,
-
-  FUND: () => `<h1 class="section-title">SUPPORT DEVELOPMENT</h1><p class="lead">Help fund the creation of Shadow Empire. Contributions remain pending until reviewed by the project owner.</p><div class="grid"><article class="card"><h3>Project Funding</h3><p class="muted">Funding goal: <strong id="goalText">Set by project owner</strong></p><p class="muted">Confirmed total: <strong id="totalText">₱0</strong></p><div class="progress"><span id="fundProgress"></span></div><p class="muted">Only verified payments should be included in official totals.</p></article><article class="card"><h3>InstaPay QR</h3><img class="qr" src="./instapay-qr.jpg" alt="Project InstaPay QR code" onerror="this.style.display='none';document.getElementById('qrMissing').style.display='block'"><p id="qrMissing" class="notice" style="display:none">QR image not found. Upload your genuine instapay-qr.jpg to the repository root.</p><p class="muted">Scan with your payment app. Never share your MPIN or OTP.</p></article></div><div class="card" style="margin-top:16px"><h3>Submit payment reference</h3><div class="actions">${[50,100,200,500].map(n=>`<button class="btn amount" data-amount="${n}">₱${n}</button>`).join('')}</div><form class="form" id="paymentForm"><label>Contribution amount (PHP)<input name="amount" type="number" min="1" required placeholder="e.g. 100"></label><label>Transaction reference<input name="reference" required maxlength="100" placeholder="Reference number from payment receipt"></label><button class="btn primary" type="submit">SUBMIT FOR REVIEW</button></form><p class="notice">This demo form does not send or verify payments. Connect a secure backend before accepting real submissions.</p><p id="paymentMessage" class="muted" aria-live="polite"></p></div>`,
-
-  COMMUNITY: () => `<h1 class="section-title">JOIN THE COMMUNITY</h1><p class="lead">Follow development, share feedback, and join fellow adventurers.</p><div class="grid"><article class="card"><h3>Discord</h3><p class="muted">Add your official Discord invite in the website settings.</p><button class="btn" data-link="discord">OPEN DISCORD</button></article><article class="card"><h3>Announcements</h3><p class="muted">Development news and project updates will appear here when connected to the backend.</p></article><article class="card"><h3>Social Links</h3><p class="muted">Add official Roblox and social media links before publishing.</p></article></div>`,
-
-  DASHBOARD: () => `<h1 class="section-title">DASHBOARD</h1><p class="lead">Sign in to access your supporter dashboard.</p><div class="grid"><article class="card"><h3>USER LOGIN</h3><form class="form" id="loginForm"><label>Username<input name="username" required minlength="3" maxlength="20" autocomplete="username"></label><label>Password<input name="password" type="password" required minlength="8" autocomplete="current-password"></label><button class="btn primary" type="submit">LOGIN</button></form><p id="loginMessage" class="muted" aria-live="polite"></p></article><article class="card"><h3>CREATE ACCOUNT</h3><form class="form" id="registerForm"><label>Username<input name="username" required minlength="3" maxlength="20" pattern="[A-Za-z0-9_]+" autocomplete="username"></label><label>Password<input name="password" type="password" required minlength="8" autocomplete="new-password"></label><label>Confirm password<input name="confirm" type="password" required minlength="8" autocomplete="new-password"></label><button class="btn" type="submit">CREATE ACCOUNT</button></form><p id="registerMessage" class="muted" aria-live="polite"></p></article></div><div class="notice">Authentication is not connected in this static preview. Do not use real passwords here. Configure the server-side username authentication function and database policies before launch.</div>`
-};
-
-app.innerHTML = `<header class="site-header"><div class="brand">SHADOW EMPIRE</div><button class="menu-toggle" id="menuToggle" aria-label="Open navigation" aria-expanded="false">☰</button><nav class="nav-menu" id="navMenu" aria-label="Main navigation">${navItems.map(n=>`<button type="button" data-page="${n}">${n}</button>`).join('')}</nav></header><main><div id="pageView" class="view"></div></main><footer>SHADOW EMPIRE · FORGE YOUR DESTINY. RISE FROM THE SHADOWS.</footer>`;
-const pageView = document.getElementById('pageView');
-const navMenu = document.getElementById('navMenu');
-const menuToggle = document.getElementById('menuToggle');
-
-function showPage(name, updateHash=true){
-  const page = navItems.includes(name) ? name : 'HOME';
-  pageView.innerHTML = pages[page]();
-
-  navMenu.querySelectorAll('[data-page]').forEach(b =>
-    b.classList.toggle('active',b.dataset.page===page)
-  );
-
-  navMenu.classList.remove('open');
-  menuToggle.textContent='☰';
-  menuToggle.setAttribute('aria-expanded','false');
-  menuToggle.setAttribute('aria-label','Open navigation');
-
-  if(updateHash) history.replaceState(null,'','#'+page.toLowerCase());
-
-  window.scrollTo({top:0,behavior:'smooth'});
+if (!app) {
+  throw new Error('Missing <div id="app"></div> in index.html');
 }
 
-menuToggle.addEventListener('click',()=>{
-  const open=navMenu.classList.toggle('open');
+const FUNDING_GOAL = 10000;
+let confirmedTotal = 0;
+let currentPage = "HOME";
+let menuOpen = false;
 
-  menuToggle.textContent=open?'✕':'☰';
-  menuToggle.setAttribute('aria-expanded',String(open));
-  menuToggle.setAttribute('aria-label',open?'Close navigation':'Open navigation');
+const style = document.createElement("style");
+
+style.textContent = `
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #050713;
+  --panel: #0b1424;
+  --border: #1b3550;
+  --cyan: #00dfff;
+  --text: #eef5ff;
+  --muted: #aab8cc;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, sans-serif;
+}
+
+button, input, textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 20px 5%;
+  background: #050713;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  color: var(--cyan);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 4px;
+}
+
+.menu-toggle {
+  display: block;
+  background: var(--panel);
+  color: var(--cyan);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 25px;
+}
+
+.nav-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 5%;
+  width: 230px;
+  padding: 12px;
+  background: #080d1b;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 15px 40px #0008;
+}
+
+.nav-menu.open {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-menu button,
+.btn {
+  background: #0c1a2b;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 13px 18px;
+  text-align: center;
+}
+
+.nav-menu button {
+  width: 100%;
+}
+
+.nav-menu button.active,
+.btn.primary {
+  background: var(--cyan);
+  color: #001018;
+  border-color: var(--cyan);
+  font-weight: bold;
+}
+
+button:hover,
+.btn:hover {
+  border-color: var(--cyan);
+}
+
+main {
+  max-width: 1150px;
+  margin: auto;
+  padding: 35px 5%;
+  min-height: 70vh;
+}
+
+.hero {
+  min-height: 65vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 35px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 80% 20%, #12375c, transparent 45%),
+    linear-gradient(135deg, #080d1b, #050713);
+  border: 1px solid var(--border);
+}
+
+.eyebrow {
+  color: var(--cyan);
+  letter-spacing: 5px;
+  font-weight: bold;
+}
+
+h1 {
+  font-size: clamp(38px, 8vw, 76px);
+  line-height: 1.05;
+  margin: 20px 0;
+}
+
+h2 {
+  color: var(--cyan);
+}
+
+p {
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.lead {
+  font-size: 20px;
+}
+
+.section-title {
+  font-size: clamp(28px, 5vw, 44px);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  margin-top: 30px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 25px;
+  margin-bottom: 18px;
+}
+
+.card h3 {
+  margin-top: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.progress {
+  height: 14px;
+  background: #142338;
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 20px 0;
+}
+
+.progress span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #00dfff, #783bff);
+  transition: width .4s;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 14px;
+  margin: 8px 0 16px;
+  background: #050912;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+footer {
+  text-align: center;
+  border-top: 1px solid var(--border);
+  padding: 25px;
+  color: var(--muted);
+}
+
+@media (min-width: 900px) {
+  .menu-toggle {
+    display: none;
+  }
+
+  .nav-menu {
+    display: flex;
+    position: static;
+    width: auto;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .nav-menu button {
+    width: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .site-header {
+    padding: 18px 5%;
+  }
+
+  .brand {
+    font-size: 17px;
+    letter-spacing: 3px;
+  }
+
+  main {
+    padding: 25px 5%;
+  }
+
+  .hero {
+    padding: 25px;
+  }
+
+  .actions .btn {
+    width: 100%;
+  }
+}
+`;
+
+document.head.appendChild(style);
+
+const navItems = [
+  "HOME",
+  "ABOUT",
+  "FEATURES",
+  "ROADMAP",
+  "FUND",
+  "COMMUNITY",
+  "DASHBOARD"
+];
+
+const pages = {
+  HOME: () => `
+    <section class="hero">
+      <p class="eyebrow">SHADOW EMPIRE</p>
+      <h1>RISE FROM<br>THE SHADOWS</h1>
+      <p class="lead">
+        Forge your destiny. Explore a world shaped by
+        power, mystery, and your choices.
+      </p>
+      <div class="actions">
+        <button class="btn primary" data-page="FEATURES">
+          EXPLORE THE GAME
+        </button>
+        <button class="btn" data-page="FUND">
+          SUPPORT DEVELOPMENT
+        </button>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h3>⚔ Open-World RPG</h3>
+        <p>Explore a dark fantasy world filled with secrets.</p>
+      </article>
+
+      <article class="card">
+        <h3>◆ Epic Dungeons</h3>
+        <p>Discover dangerous dungeons and powerful bosses.</p>
+      </article>
+
+      <article class="card">
+        <h3>✦ Character Growth</h3>
+        <p>Forge your own path and develop your character.</p>
+      </article>
+    </section>
+  `,
+
+  ABOUT: () => `
+    <h1 class="section-title">ABOUT SHADOW EMPIRE</h1>
+    <p class="lead">
+      Shadow Empire is a dark fantasy Roblox RPG project
+      focused on exploration, progression, and adventure.
+    </p>
+
+    <div class="card">
+      <h2>Our Vision</h2>
+      <p>
+        Create an immersive world where players can explore,
+        discover hidden places, and build their own legends.
+      </p>
+    </div>
+  `,
+
+  FEATURES: () => `
+    <h1 class="section-title">GAME FEATURES</h1>
+    <p class="lead">Discover what awaits beyond the shadows.</p>
+
+    <div class="grid">
+      <article class="card">
+        <h3>⚔ Combat System</h3>
+        <p>Battle enemies and improve your abilities.</p>
+      </article>
+
+      <article class="card">
+        <h3>◆ Exploration</h3>
+        <p>Travel through mysterious lands and hidden areas.</p>
+      </article>
+
+      <article class="card">
+        <h3>✦ Progression</h3>
+        <p>Develop your character and unlock new skills.</p>
+      </article>
+
+      <article class="card">
+        <h3>♜ World Events</h3>
+        <p>Discover events and challenges throughout the world.</p>
+      </article>
+    </div>
+  `,
+
+  ROADMAP: () => `
+    <h1 class="section-title">DEVELOPMENT ROADMAP</h1>
+
+    <div class="card">
+      <h3>Phase 1 — Foundation</h3>
+      <p>Core planning and initial development.</p>
+    </div>
+
+    <div class="card">
+      <h3>Phase 2 — World Building</h3>
+      <p>Map design, environments, and exploration.</p>
+    </div>
+
+    <div class="card">
+      <h3>Phase 3 — Gameplay</h3>
+      <p>Combat, progression, and quests.</p>
+    </div>
+
+    <div class="card">
+      <h3>Phase 4 — Testing</h3>
+      <p>Testing, balancing, and preparing for release.</p>
+    </div>
+  `,
+
+  FUND: () => `
+    <h1 class="section-title">SUPPORT DEVELOPMENT</h1>
+
+    <p class="lead">
+      Help fund the creation of Shadow Empire.
+      Contributions remain pending until reviewed.
+    </p>
+
+    <section class="card">
+      <h2>Project Funding</h2>
+
+      <p>
+        Funding goal:
+        <strong>₱${FUNDING_GOAL.toLocaleString("en-PH")}</strong>
+      </p>
+
+      <p>
+        Confirmed total:
+        <strong>₱${confirmedTotal.toLocaleString("en-PH")}</strong>
+      </p>
+
+      <div class="progress">
+        <span id="fundingProgress"></span>
+      </div>
+
+      <p id="fundingPercent">0% funded</p>
+
+      <p>
+        Only verified payments should be included in official totals.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>InstaPay QR</h2>
+
+      <img
+        src="./instapay-qr.jpg"
+        alt="Project payment QR code"
+        style="width:100%;max-width:420px;border-radius:12px"
+      >
+
+      <p>
+        Use the project's genuine payment QR code.
+        Verify payment details before sending.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Submit Payment Reference</h2>
+
+      <form id="paymentForm">
+        <label for="paymentAmount">Amount in PHP</label>
+        <input
+          id="paymentAmount"
+          name="amount"
+          type="number"
+          min="1"
+          required
+        >
+
+        <label for="paymentReference">Payment reference</label>
+        <input
+          id="paymentReference"
+          name="reference"
+          maxlength="100"
+          required
+        >
+
+        <button class="btn primary" type="submit">
+          SUBMIT FOR REVIEW
+        </button>
+      </form>
+
+      <p id="paymentMessage">
+        Submitted payments are not automatically confirmed.
+      </p>
+    </section>
+  `,
+
+  COMMUNITY: () => `
+    <h1 class="section-title">JOIN THE COMMUNITY</h1>
+
+    <p class="lead">
+      Follow development and connect with the Shadow Empire
+      community.
+    </p>
+
+    <div class="card">
+      <h2>Discord Community</h2>
+      <p>Join the community to receive development updates.</p>
+      <a class="btn primary"
+         href="https://discord.com"
+         target="_blank"
+         rel="noopener">
+        OPEN DISCORD
+      </a>
+    </div>
+  `,
+
+  DASHBOARD: () => `
+    <h1 class="section-title">DASHBOARD</h1>
+
+    <p class="lead">
+      Access your supporter dashboard.
+    </p>
+
+    <section class="card">
+      <h2>Account Login</h2>
+
+      <form id="loginForm">
+        <label for="username">Username</label>
+        <input
+          id="username"
+          name="username"
+          autocomplete="username"
+          required
+        >
+
+        <label for="password">Password</label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          required
+        >
+
+        <button class="btn primary" type="submit">
+          SIGN IN
+        </button>
+      </form>
+
+      <p id="loginMessage">
+        Account authentication must be connected to Supabase.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Admin Panel</h2>
+      <p>
+        Payment approvals and admin access must be handled
+        securely through the backend.
+      </p>
+      <p>
+        Do not put admin passwords or service-role keys
+        inside this public JavaScript file.
+      </p>
+    </section>
+  `
+};
+
+app.innerHTML = `
+  <header class="site-header">
+    <div class="brand">SHADOW EMPIRE</div>
+
+    <button
+      class="menu-toggle"
+      id="menuToggle"
+      aria-label="Open navigation"
+      aria-expanded="false"
+    >☰</button>
+
+    <nav class="nav-menu" id="navMenu">
+      ${navItems.map(name => `
+        <button data-page="${name}">${name}</button>
+      `).join("")}
+    </nav>
+  </header>
+
+  <main id="pageView"></main>
+
+  <footer>
+    SHADOW EMPIRE — RISE FROM THE SHADOWS
+  </footer>
+`;
+
+const pageView = document.getElementById("pageView");
+const navMenu = document.getElementById("navMenu");
+const menuToggle = document.getElementById("menuToggle");
+
+function showPage(name) {
+  const page = pages[name] ? name : "HOME";
+
+  currentPage = page;
+  pageView.innerHTML = pages[page]();
+
+  navMenu.querySelectorAll("[data-page]").forEach(button => {
+    button.classList.toggle(
+      "active",
+      button.dataset.page === page
+    );
+  });
+
+  navMenu.classList.remove("open");
+  menuOpen = false;
+
+  menuToggle.textContent = "☰";
+  menuToggle.setAttribute("aria-expanded", "false");
+  menuToggle.setAttribute("aria-label", "Open navigation");
+
+  if (page === "FUND") {
+    updateFundingDisplay();
+  }
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+function updateFundingDisplay() {
+  const progress = document.getElementById("fundingProgress");
+  const percentText = document.getElementById("fundingPercent");
+
+  if (!progress || !percentText) return;
+
+  const percent = Math.min(
+    100,
+    Math.max(0, (confirmedTotal / FUNDING_GOAL) * 100)
+  );
+
+  progress.style.width = percent + "%";
+  percentText.textContent = percent.toFixed(1) + "% funded";
+}
+
+menuToggle.addEventListener("click", () => {
+  menuOpen = !menuOpen;
+
+  navMenu.classList.toggle("open", menuOpen);
+
+  menuToggle.textContent = menuOpen ? "✕" : "☰";
+
+  menuToggle.setAttribute(
+    "aria-expanded",
+    String(menuOpen)
+  );
+
+  menuToggle.setAttribute(
+    "aria-label",
+    menuOpen ? "Close navigation" : "Open navigation"
+  );
 });
 
-app.addEventListener('click',e=>{
-  const pageButton=e.target.closest('[data-page]');
+app.addEventListener("click", event => {
+  const button = event.target.closest("[data-page]");
 
-  if(pageButton){
-    showPage(pageButton.dataset.page);
+  if (!button) return;
+
+  showPage(button.dataset.page);
+});
+
+document.addEventListener("click", event => {
+  if (
+    menuOpen &&
+    !navMenu.contains(event.target) &&
+    !menuToggle.contains(event.target)
+  ) {
+    menuOpen = false;
+    navMenu.classList.remove("open");
+    menuToggle.textContent = "☰";
+    menuToggle.setAttribute("aria-expanded", "false");
+  }
+});
+
+// Frontend demonstration only.
+// Connect this form to your secure backend before using it.
+app.addEventListener("submit", event => {
+  event.preventDefault();
+
+  if (event.target.id === "paymentForm") {
+    const message = document.getElementById("paymentMessage");
+
+    message.textContent =
+      "The form is working, but payment submission needs " +
+      "a secure backend connection. No payment was confirmed.";
+
     return;
   }
 
-  const amount=e.target.closest('[data-amount]');
+  if (event.target.id === "loginForm") {
+    const message = document.getElementById("loginMessage");
 
-  if(amount){
-    const input=document.querySelector('#paymentForm [name="amount"]');
-    if(input)input.value=amount.dataset.amount;
+    message.textContent =
+      "Login is not connected yet. Configure Supabase " +
+      "authentication before using accounts or admin access.";
+
     return;
   }
-
-  const link=e.target.closest('[data-link]');
-
-  if(link){
-    alert('Add your official community URL in the project configuration before using this link.');
-  }
 });
 
-app.addEventListener('submit',e=>{
-  if(e.target.id==='paymentForm'){
-    e.preventDefault();
-
-    document.getElementById('paymentMessage').textContent=
-      'Demo only: no payment was submitted. Connect the secure backend to record this as Pending.';
-  }
-
-  if(e.target.id==='loginForm'){
-    e.preventDefault();
-
-    document.getElementById('loginMessage').textContent=
-      'Login backend is not configured yet. No credentials were sent or saved.';
-  }
-
-  if(e.target.id==='registerForm'){
-    e.preventDefault();
-
-    const f=e.target;
-    const username=f.username.value.trim();
-
-    if(!/^[A-Za-z0-9_]{3,20}$/.test(username)){
-      document.getElementById('registerMessage').textContent=
-        'Use 3–20 letters, numbers, or underscores.';
-      return;
-    }
-
-    if(f.password.value!==f.confirm.value){
-      document.getElementById('registerMessage').textContent=
-        'Passwords do not match.';
-      return;
-    }
-
-    document.getElementById('registerMessage').textContent=
-      'Frontend validation passed. Account creation requires the secure backend and is not active in this preview.';
-  }
-});
-
-window.addEventListener('hashchange',()=>{
-  showPage(location.hash.slice(1).toUpperCase(),false);
-});
-
-showPage(location.hash.slice(1).toUpperCase()||'HOME',false);
+// Initial page
+showPage("HOME");
