@@ -486,23 +486,12 @@ const pages = {
         and follow the development of the game.
       </p>
 
-      <a
-        href="https://discord.gg/RtYzPutCq"
-        target="_blank"
-        rel="noopener noreferrer"
-        style="
-          display: inline-block;
-          background: #5865F2;
-          color: white;
-          padding: 15px 24px;
-          border-radius: 12px;
-          text-decoration: none;
-          font-weight: bold;
-          margin-top: 20px;
-        "
-      >
-        JOIN DISCORD
-      </a>
+<a href="https://discord.gg/RtYzPutCq"
+   target="_blank"
+   rel="noopener noreferrer"
+   class="btn primary">
+  JOIN DISCORD
+</a>
     </section>
   `,
 
